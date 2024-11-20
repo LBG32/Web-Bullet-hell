@@ -5,10 +5,10 @@ function setup() {
     var navTag = document.createElement('nav');
     navTag.classList = "navbar navbar-expand-lg navbar-dark bg-dark";
     navTag.innerHTML = `
-    <a class="navbar-brand" href="#">WebGL Introduction 4</a>
+    <a class="navbar-brand" href="#">CMPT370 Final Project</a>
     <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
-            <a class="nav-link" href="index.html">Example 1</a>
+            <a class="nav-link" href="index.html">Game</a>
         </li>
     </ul>
     `;

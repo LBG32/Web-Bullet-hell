@@ -29,7 +29,7 @@ function main() {
     // Create a state for our scene
     var state = {
         camera: {
-            position: vec3.fromValues(0.0, 3.0, 5.0),
+            position: vec3.fromValues(0.0, 30.0, 15.0),
             center: vec3.fromValues(0.0, 0.0, 0.0),
             up: vec3.fromValues(0.0, 1.0, 0.0),
         },
@@ -168,21 +168,21 @@ function setupKeypresses(state){
             case "ArrowRight":
                 if (event.getModifierState("Shift")) {
                     // translate camera along X (left)
-                    vec3.add(state.camera.center, state.camera.center, vec3.fromValues(-0.1, 0.0, 0.0));
-                    vec3.add(state.camera.position, state.camera.position, vec3.fromValues(-0.1, 0.0, 0.0));
+                    //vec3.add(state.camera.center, state.camera.center, vec3.fromValues(-0.1, 0.0, 0.0));
+                    //vec3.add(state.camera.position, state.camera.position, vec3.fromValues(-0.1, 0.0, 0.0));
                 } else {
                     // translate object along X (right)
-                    vec3.add(state.model.position, state.model.position, vec3.fromValues(0.1, 0.0, 0.0));
+                    vec3.add(state.model.position, state.model.position, vec3.fromValues(1.0, 0.0, 0.0));
                 }
                 break;
             case "ArrowLeft":
                 if (event.getModifierState("Shift")) {
                     // translate camera along X (right)
-                    vec3.add(state.camera.center, state.camera.center, vec3.fromValues(0.1, 0.0, 0.0));
-                    vec3.add(state.camera.position, state.camera.position, vec3.fromValues(0.1, 0.0, 0.0));
+                    //vec3.add(state.camera.center, state.camera.center, vec3.fromValues(0.1, 0.0, 0.0));
+                    //vec3.add(state.camera.position, state.camera.position, vec3.fromValues(0.1, 0.0, 0.0));
                 } else {
                     // translate object along X (left)
-                    vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.1, 0.0, 0.0));
+                    vec3.add(state.model.position, state.model.position, vec3.fromValues(-1.0, 0.0, 0.0));
                 }
                 break;
             case "ArrowUp":
@@ -191,42 +191,29 @@ function setupKeypresses(state){
                     // translate camera y
 
                     // translate camera along Y (up)
-                    vec3.add(state.camera.center, state.camera.center, vec3.fromValues(0.0, 0.1, 0.0));
+                    //vec3.add(state.camera.center, state.camera.center, vec3.fromValues(0.0, 0.1, 0.0));
 
-                    /*
-                    
-                    let angle = -0.05; // Rotate counterclockwise
-                    let rotationMatrix = mat4.create();
-                    mat4.rotateX(rotationMatrix, rotationMatrix, angle);
-                    vec3.transformMat4(state.camera.center, state.camera.center, rotationMatrix);
-                    */
+                   
                     
                 } else {
-                    // Rotate object around X-axis (up)
-                    let angle = 0.05; // Rotate clockwise
-                    mat4.rotateX(state.model.rotation, state.model.rotation, angle);
+                    // Move object about Z-axis (forward)
+                    vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, -1.0));
                 }
                 break;
             case "ArrowDown":
                 if (event.getModifierState("Shift")) {
 
                     // Rotate camera around Y-axis (down)
-                     // translate camera along Y (up)
-                     vec3.add(state.camera.center, state.camera.center, vec3.fromValues(0.0, -5.0, 0.0));
+                    // translate camera along Y (up)
+                    //vec3.add(state.camera.center, state.camera.center, vec3.fromValues(0.0, -5.0, 0.0));
 
 
-                    /*
-                    let angle = 0.05; // Rotate clockwise
-                    let rotationMatrix = mat4.create();
-                    mat4.rotateX(rotationMatrix, rotationMatrix, angle);
-                    vec3.transformMat4(state.camera.center, state.camera.center, rotationMatrix);
-                    */
+                    
 
 
                 } else {
-                    // Rotate object around X-axis (down)
-                    let angle = -0.05; // Rotate counterclockwise
-                    mat4.rotateX(state.model.rotation, state.model.rotation, angle);
+                    // Move object Down Z-axis (backwards)
+                    vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, 1.0));
                 }
                 break;
             case "Minus":
