@@ -38,6 +38,11 @@ function main() {
             rotation: mat4.create(), // Identity matrix
             scale: vec3.fromValues(1.0, 1.0, 1.0),
         },
+        model2: { // needs to be changed/removed -nadir
+            position: vec3.fromValues(0.2, 0.0, 0.2),
+            rotation: mat4.create(), // Identity matrix
+            scale: vec3.fromValues(1.0, 1.0, 1.0),
+        },
         canvas: canvas,
     };
 
@@ -134,14 +139,24 @@ function drawScene(gl, deltaTime, state, programInfo, buffers) {
 
         var modelMatrix = mat4.create();
         mat4.translate(modelMatrix, modelMatrix, state.model.position);
-
         // TODO: Apply rotation here
         mat4.multiply(modelMatrix, modelMatrix, state.model.rotation); // Apply rotation
-
-
-        mat4.scale(modelMatrix, modelMatrix, state.model.scale);
-
+        mat4.scale(modelMatrix, modelMatrix, state.model.scale);        
         gl.uniformMatrix4fv(programInfo.uniformLocations.model, false, modelMatrix);
+
+
+        // second model
+        // Update `model2` transform (animate it)
+        // this may need to be removed or changed -nadir
+        var modelMatrix2 = mat4.create();
+        var time = performance.now() * 0.001; // Current time in seconds
+        state.model2.position[0] = Math.sin(time) * 5.0; // Oscillate along X-axis
+        state.model2.position[2] = Math.cos(time) * 5.0; // Oscillate along Z-axis
+        mat4.translate(modelMatrix2, modelMatrix2, state.model2.position);
+        mat4.multiply(modelMatrix2, modelMatrix2, state.model2.rotation);
+        mat4.scale(modelMatrix2, modelMatrix2, state.model2.scale);
+        gl.uniformMatrix4fv(programInfo.uniformLocations.model2, false, modelMatrix2); 
+
        
     }
 
@@ -225,6 +240,8 @@ function setupKeypresses(state){
                 state.model.position = vec3.fromValues(0.0, 0.0, 0.0);
                 state.model.rotation = mat4.create(); // Identity matrix
                 state.model.scale = vec3.fromValues(1.0, 1.0, 1.0);
+
+                
                 // Reset camera to original position
                 state.camera.position = vec3.fromValues(0.0, 3.0, 5.0); // Example default position
                 state.camera.center = vec3.fromValues(0.0, 0.0, 0.0); // Example default center
@@ -252,6 +269,8 @@ function intializeShaderProgram(gl){
     uniform mat4 uProjectionMatrix;
     uniform mat4 uViewMatrix;
     uniform mat4 uModelMatrix;
+    uniform mat4 uModelMatrix2; // change/remove -nadir
+    
 
     out vec4 oColor;
   
@@ -297,6 +316,8 @@ function intializeShaderProgram(gl){
             projection: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
             view: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
             model: gl.getUniformLocation(shaderProgram, 'uModelMatrix'),
+
+            model2: gl.getUniformLocation(shaderProgram, 'uModelMatrix2'), // change or remove -nadir
         }
     };
 
