@@ -176,57 +176,53 @@ function drawScene(gl, deltaTime, state, programInfo, buffers) {
  ************************************/
 
 function setupKeypresses(state){
+    const keysPressed = {};
+
     document.addEventListener("keydown", (event) => {
         console.log(event.code);
+        keysPressed[event.code] = true;
         
-        switch(event.code) {
-            case "KeyD":
-                // translate object along X (right)
-                vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, 0.0));
-                break;
-            case "KeyA":
-                // translate object along X (left)
-                vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, 0.0));
-                break;
-            case "KeyW":
-                // Move object about Z-axis (forward)
-                vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, -0.4));
-                break;
-            case "KeyX":
-                // Move object Down Z-axis (backwards)
-                vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, 0.4));
-                break;
-            case "KeyQ":
-                // Move Object in the Uper-left diagonal
-                vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, -0.4));
-                break;
-            case "KeyE":
-                // Move Object in the Uper-right diagonal
-                vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, -0.4));
-                break;
-            case "KeyZ":
-                // Move Object in the Lower-left diagonal
-                vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, 0.4));
-                break;
-            case "KeyC":
-                // Move Object in the Lower-right diagonal
-                vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, 0.4));
-                break;
-            case "Equal":
-                // Reset the state
-                state.model.position = vec3.fromValues(0.0, 0.0, 0.0);
-                state.model.rotation = mat4.create(); // Identity matrix
-                state.model.scale = vec3.fromValues(1.0, 1.0, 1.0);
+        
+        if(keysPressed["KeyW"]&&keysPressed["KeyA"]){
+            // Move Object in the Uper-left diagonal
+            vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, -0.4));
+        } else if(keysPressed["KeyW"]&&keysPressed["KeyD"]){
+            // Move Object in the Uper-right diagonal
+            vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, -0.4));
+        } else if(keysPressed["KeyS"]&&keysPressed["KeyA"]){
+            // Move Object in the Lower-left diagonal
+            vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, 0.4));
+        } else if(keysPressed["KeyS"]&&keysPressed["KeyD"]){
+            // Move Object in the Lower-right diagonal
+            vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, 0.4));
+        } else if(keysPressed["KeyD"]){
+            // translate object along X (right)
+            vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, 0.0));
+        } else if (keysPressed["KeyA"]){
+            // translate object along X (left)
+            vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, 0.0));
+        } else if(keysPressed["KeyW"]){
+            // Move object about Z-axis (forward)
+            vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, -0.4));
+        } else if(keysPressed["KeyS"]){
+            // Move object Down Z-axis (backwards)
+            vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, 0.4));
+        } else if(keysPressed["Equal"]){
+            // Reset the state
+            state.model.position = vec3.fromValues(0.0, 0.0, 0.0);
+            state.model.rotation = mat4.create(); // Identity matrix
+            state.model.scale = vec3.fromValues(1.0, 1.0, 1.0);
 
-                
-                // Reset camera to original position
-                state.camera.position = vec3.fromValues(0.0, 30.0, 15.0); // Example default position
-                state.camera.center = vec3.fromValues(0.0, 0.0, 0.0); // Example default center
-                state.camera.up = vec3.fromValues(0.0, 1.0, 0.0);
-                break;
-            default:
-                break;
+            
+            // Reset camera to original position
+            state.camera.position = vec3.fromValues(0.0, 30.0, 15.0); // Example default position
+            state.camera.center = vec3.fromValues(0.0, 0.0, 0.0); // Example default center
+            state.camera.up = vec3.fromValues(0.0, 1.0, 0.0);
         }
+
+        document.addEventListener("keyup", (event) => {
+            delete keysPressed[event.code];
+        })
     });
 }
 
