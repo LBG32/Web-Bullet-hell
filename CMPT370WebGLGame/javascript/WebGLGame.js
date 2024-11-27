@@ -220,7 +220,7 @@ function setupKeypresses(state){
 
                 
                 // Reset camera to original position
-                state.camera.position = vec3.fromValues(0.0, 3.0, 5.0); // Example default position
+                state.camera.position = vec3.fromValues(0.0, 30.0, 15.0); // Example default position
                 state.camera.center = vec3.fromValues(0.0, 0.0, 0.0); // Example default center
                 state.camera.up = vec3.fromValues(0.0, 1.0, 0.0);
                 break;
