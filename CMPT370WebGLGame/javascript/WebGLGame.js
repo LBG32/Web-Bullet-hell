@@ -180,60 +180,37 @@ function setupKeypresses(state){
         console.log(event.code);
         
         switch(event.code) {
-            case "ArrowRight":
-                if (event.getModifierState("Shift")) {
-                    // translate camera along X (left)
-                    //vec3.add(state.camera.center, state.camera.center, vec3.fromValues(-0.1, 0.0, 0.0));
-                    //vec3.add(state.camera.position, state.camera.position, vec3.fromValues(-0.1, 0.0, 0.0));
-                } else {
-                    // translate object along X (right)
-                    vec3.add(state.model.position, state.model.position, vec3.fromValues(1.0, 0.0, 0.0));
-                }
+            case "KeyD":
+                // translate object along X (right)
+                vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, 0.0));
                 break;
-            case "ArrowLeft":
-                if (event.getModifierState("Shift")) {
-                    // translate camera along X (right)
-                    //vec3.add(state.camera.center, state.camera.center, vec3.fromValues(0.1, 0.0, 0.0));
-                    //vec3.add(state.camera.position, state.camera.position, vec3.fromValues(0.1, 0.0, 0.0));
-                } else {
-                    // translate object along X (left)
-                    vec3.add(state.model.position, state.model.position, vec3.fromValues(-1.0, 0.0, 0.0));
-                }
+            case "KeyA":
+                // translate object along X (left)
+                vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, 0.0));
                 break;
-            case "ArrowUp":
-                if (event.getModifierState("Shift")) {
-                    // Rotate camera around X-axis (up)
-                    // translate camera y
-
-                    // translate camera along Y (up)
-                    //vec3.add(state.camera.center, state.camera.center, vec3.fromValues(0.0, 0.1, 0.0));
-
-                   
-                    
-                } else {
-                    // Move object about Z-axis (forward)
-                    vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, -1.0));
-                }
+            case "KeyW":
+                // Move object about Z-axis (forward)
+                vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, -0.4));
                 break;
-            case "ArrowDown":
-                if (event.getModifierState("Shift")) {
-
-                    // Rotate camera around Y-axis (down)
-                    // translate camera along Y (up)
-                    //vec3.add(state.camera.center, state.camera.center, vec3.fromValues(0.0, -5.0, 0.0));
-
-
-                    
-
-
-                } else {
-                    // Move object Down Z-axis (backwards)
-                    vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, 1.0));
-                }
+            case "KeyX":
+                // Move object Down Z-axis (backwards)
+                vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, 0.4));
                 break;
-            case "Minus":
-                // Make the object larger by changing the scale
-                vec3.add(state.model.scale, state.model.scale, vec3.fromValues(0.1, 0.1, 0.1));
+            case "KeyQ":
+                // Move Object in the Uper-left diagonal
+                vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, -0.4));
+                break;
+            case "KeyE":
+                // Move Object in the Uper-right diagonal
+                vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, -0.4));
+                break;
+            case "KeyZ":
+                // Move Object in the Lower-left diagonal
+                vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, 0.4));
+                break;
+            case "KeyC":
+                // Move Object in the Lower-right diagonal
+                vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, 0.4));
                 break;
             case "Equal":
                 // Reset the state
