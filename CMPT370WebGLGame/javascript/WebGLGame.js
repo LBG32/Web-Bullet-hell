@@ -1,9 +1,4 @@
-// This is where the entrypoint is
 main();
-
-// Mozilla's tutorial on WebGL was used as a base for this example.
-// See https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial
-// The original source is here: https://github.com/mdn/webgl-examples
 
 /************************************
  * MAIN
@@ -33,35 +28,122 @@ function main() {
             center: vec3.fromValues(0.0, 0.0, 0.0),
             up: vec3.fromValues(0.0, 1.0, 0.0),
         },
-        model: {
-            position: vec3.fromValues(0.0, 0.0, 0.0),
-            rotation: mat4.create(), // Identity matrix
-            scale: vec3.fromValues(1.0, 1.0, 1.0),
-        },
-        model2: { // needs to be changed/removed -nadir
-            position: vec3.fromValues(0.2, 0.0, 0.2),
-            rotation: mat4.create(), // Identity matrix
-            scale: vec3.fromValues(1.0, 1.0, 1.0),
-        },
+        lights: [
+            {
+                position: vec3.fromValues(0.0, 5.0, 5.0),
+                colour: vec3.fromValues(1.0, 1.0, 1.0),
+                strength: 10.0,
+            }
+        ],
+        // IF ADDING OBJECTS REMEMBER TO GIVE ID'S, ALSO LAST OBJECT NEEDS TO BE THE PLAYER
+        objects: [
+            {
+                model: { // red
+                    position: vec3.fromValues(0.0, 0.0, 0.0),
+                    rotation: mat4.create(), // Identity matrix
+                    scale: vec3.fromValues(1.0, 1.0, 1.0),
+                    id: 0,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(1.0, 0.0, 0.0, 1.0),
+            },
+            {
+                model: { //blue 
+                    position: vec3.fromValues(5.5, 0.0, 5.5),
+                    rotation: mat4.create(), // Identity matrix
+                    scale: vec3.fromValues(1.0, 1.0, 1.0),
+                    id: 1,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.0, 0.0, 1.0, 1.0),
+            },
+            
+            {
+                model: { // left wall
+                    position: vec3.fromValues(-25.5, 0.0, 0.0),
+                    rotation: mat4.create(),
+                    scale: vec3.fromValues(3.0, 1.0, 30.0),
+                    id: 2,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.8, 0.8, 0.2, 1.0),
+            },
+            {
+                model: { // right wall
+                    position: vec3.fromValues(22.5, 0.0, 0.0),
+                    rotation: mat4.create(),
+                    scale: vec3.fromValues(1.0, 2.0, 30.0),
+                    id: 3,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.8, 0.2, 0.8, 1.0),
+            },
+            {
+                model: { // bottom wall
+                    position: vec3.fromValues(0.0, 0.0, 16.0),
+                    rotation: mat4.create(),
+                    scale: vec3.fromValues(30.0, 1.0, 1.0),
+                    id: 4,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.2, 0.8, 0.8, 1.0),
+            },
+            {
+                model: { // top wall
+                    position: vec3.fromValues(0.0, 0.0, -25.0),
+                    rotation: mat4.create(),
+                    scale: vec3.fromValues(40.0, 3.0, 1.0),
+                    id: 5,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.3, 0.1, 0.5, 1.0),
+            },
+            {
+                model: { // this one is the player (highest id num is player)
+                    position: vec3.fromValues(-5.5, 0.0, -5.5),
+                    rotation: mat4.create(), // Identity matrix
+                    scale: vec3.fromValues(1.0, 1.0, 1.0),
+                    id: 6,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.0, 1.0, 0.0, 1.0),
+            },
+        ],
         canvas: canvas,
+        selectedIndex: 0,
     };
 
+    state.objects.forEach((object) => {
+        initQuadBuffers(gl, object);
+    });
+
+    console.log(state)
     setupKeypresses(state);
 
-    console.log("Initializing program");
-    var programInfo = intializeShaderProgram(gl);
-    var buffers = initBuffers(gl, programInfo);
-
-
     console.log("Starting rendering loop");
-    startRendering(gl, state, programInfo, buffers);
+    startRendering(gl, state);
 }
+
 
 /************************************
  * RENDERING CALLS
  ************************************/
 
-function startRendering(gl, state, programInfo, buffers) {
+function startRendering(gl, state) {
     // A variable for keeping track of time between frames
     var then = 0.0;
 
@@ -71,8 +153,10 @@ function startRendering(gl, state, programInfo, buffers) {
         const deltaTime = now - then;
         then = now;
 
+        updateState(deltaTime, state);
+
         // Draw our scene
-        drawScene(gl, deltaTime, state, programInfo, buffers);
+        drawScene(gl, state);
 
         // Request another frame when this one is done
         requestAnimationFrame(render);
@@ -82,94 +166,152 @@ function startRendering(gl, state, programInfo, buffers) {
     requestAnimationFrame(render);
 }
 
-/**
- * Draws the scene. Should be called every frame
- * 
- * @param  {} gl WebGL2 context
- * @param {number} deltaTime Time between each rendering call
- * @param  {} programInfo Custom object containing shader program and locations
- * @param  {} buffers Buffer data to use to draw shapes
- */
-function drawScene(gl, deltaTime, state, programInfo, buffers) {
+function updateState(deltaTime, state) {
+    state.objects.forEach((object) => {
+        if (!object.velocity) {
+            // Initialize velocity for the object if not already set
+            object.velocity = [
+                (Math.random() - 0.5) * 20, // Random velocity along X
+                0,                          // No movement along Y
+                (Math.random() - 0.5) * 20  // Random velocity along Z
+            ];
+        }
+
+        if (object.model.id < 2) {
+
+            // Update the position based on velocity
+            object.model.position[0] += object.velocity[0] * deltaTime; // Update X position
+            object.model.position[2] += object.velocity[2] * deltaTime; // Update Z position
+
+            // Check for collisions with camera view bounds
+            const cameraBounds = {
+                left: -21,  //  left bound
+                right: 20,  //  right bound
+                top: 14,    //  bottom bound THESE ARE REVERSED SO COMMENT NAMES ARE CORRECT VARIABLES ARE NOT
+                bottom: -22 //  top bound   RENAMING THEM BREAKS VELOCITY FOR SOME REASON
+            };
+
+            // Bounce off the left or right edges
+            if (
+                object.model.position[0] <= cameraBounds.left ||
+                object.model.position[0] >= cameraBounds.right
+            ) {
+                object.velocity[0] *= -1; // Invert X velocity
+            }
+
+            // Bounce off the top or bottom edges
+            if (
+                object.model.position[2] <= cameraBounds.bottom ||
+                object.model.position[2] >= cameraBounds.top
+            ) {
+                object.velocity[2] *= -1; // Invert Z velocity
+            }
+
+            // check collision
+            if (object.model.position[0] == state.objects[2].model.position[0] && 
+                object.model.position[2] == state.objects[2].model.position[2]) {
+                console.log(`Object collision`);
+
+            }
+        }
+        
+    });
+}
+
+
+
+function drawScene(gl, state) {
+
+    var xLimit = 10.0;
     // Set clear colour
     // This is a Red-Green-Blue-Alpha colour
     // See https://en.wikipedia.org/wiki/RGB_color_model
     // Here we use floating point values. In other places you may see byte representation (0-255).
     gl.clearColor(0.55686, 0.54902, 0.52157, 1.0);
+    
 
     // Depth testing allows WebGL to figure out what order to draw our objects such that the look natural.
     // We want to draw far objects first, and then draw nearer objects on top of those to obscure them.
     // To determine the order to draw, WebGL can test the Z value of the objects.
     // The z-axis goes out of the screen
-    gl.enable(gl.DEPTH_TEST); // Enable depth testing
-    gl.depthFunc(gl.LEQUAL); // Near things obscure far things
-    gl.clearDepth(1.0); // Clear everything
 
-    // Clear the color and depth buffer with specified clear colour.
+    // TODO add correct settings for drawing transparent objects
+    // turn off depth mask and enable blending
+    gl.depthMask(false);
+    gl.enable(gl.BLEND);
+    //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.ONE_MINUS_CONSTANT_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+
+
+
+    // TODO Clear the color and depth buffer with specified clear colour.
     // This will replace everything that was in the previous frame with the clear colour.
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-
-    // Choose to use our shader
-    gl.useProgram(programInfo.program);
-
-    // Update uniforms
-    {
-        var projectionMatrix = mat4.create();
-        var fovy = 60.0 * Math.PI / 180.0; // Vertical field of view in radians
-        var aspect = state.canvas.clientWidth / state.canvas.clientHeight; // Aspect ratio of the canvas
-        var near = 0.1; // Near clipping plane
-        var far = 100.0; // Far clipping plane
-        // Generate the projection matrix using perspective
-        mat4.perspective(projectionMatrix, fovy, aspect, near, far);
-
-        gl.uniformMatrix4fv(programInfo.uniformLocations.projection, false, projectionMatrix);
     
-        var viewMatrix = mat4.create();
-        mat4.lookAt(
-            viewMatrix,
-            state.camera.position,
-            state.camera.center,
-            state.camera.up,
-        );
-        gl.uniformMatrix4fv(programInfo.uniformLocations.view, false, viewMatrix);
+
+    var sortedObjects = state.objects.sort((a, b) => {
+        // TODO: Add an object comparison function
+        
+        // Compute the distance of a and b from the cam
+        var distA = a.model.id;
+        var distB = b.model.id;
+
+        // return (A first wasnt working)
+        return distB - distA;
+    });
+
+    sortedObjects.forEach((object) => {
+        // Choose to use our shader
+        gl.useProgram(object.programInfo.program);
+
+            // Update uniforms
+        {
+            var projectionMatrix = mat4.create();
+            var fovy = 60.0 * Math.PI / 180.0; // Vertical field of view in radians
+            var aspect = state.canvas.clientWidth / state.canvas.clientHeight; // Aspect ratio of the canvas
+            var near = 0.1; // Near clipping plane
+            var far = 100.0; // Far clipping plane
+            // Generate the projection matrix using perspective
+            mat4.perspective(projectionMatrix, fovy, aspect, near, far);
+
+            gl.uniformMatrix4fv(object.programInfo.uniformLocations.projection, false, projectionMatrix);
+        
+            var viewMatrix = mat4.create();
+            mat4.lookAt(
+                viewMatrix,
+                state.camera.position,
+                state.camera.center,
+                state.camera.up,
+            );
+            gl.uniformMatrix4fv(object.programInfo.uniformLocations.view, false, viewMatrix);
 
 
-        // Update model transform
+            
+            
+            var modelMatrix = mat4.create();
+            mat4.translate(modelMatrix, modelMatrix, object.model.position);
+            mat4.mul(modelMatrix, modelMatrix, object.model.rotation);
+            mat4.scale(modelMatrix, modelMatrix, object.model.scale);
+            gl.uniformMatrix4fv(object.programInfo.uniformLocations.model, false, modelMatrix);
 
-        var modelMatrix = mat4.create();
-        mat4.translate(modelMatrix, modelMatrix, state.model.position);
-        // TODO: Apply rotation here
-        mat4.multiply(modelMatrix, modelMatrix, state.model.rotation); // Apply rotation
-        mat4.scale(modelMatrix, modelMatrix, state.model.scale);        
-        gl.uniformMatrix4fv(programInfo.uniformLocations.model, false, modelMatrix);
+            gl.uniform4fv(object.programInfo.uniformLocations.colour, object.colour);
 
+            
+        }
 
-        // second model
-        // Update `model2` transform (animate it)
-        // this may need to be removed or changed -nadir
-        var modelMatrix2 = mat4.create();
-        var time = performance.now() * 0.001; // Current time in seconds
-        state.model2.position[0] = Math.sin(time) * 5.0; // Oscillate along X-axis
-        state.model2.position[2] = Math.cos(time) * 5.0; // Oscillate along Z-axis
-        mat4.translate(modelMatrix2, modelMatrix2, state.model2.position);
-        mat4.multiply(modelMatrix2, modelMatrix2, state.model2.rotation);
-        mat4.scale(modelMatrix2, modelMatrix2, state.model2.scale);
-        gl.uniformMatrix4fv(programInfo.uniformLocations.model2, false, modelMatrix2); 
+        // Draw 
+        {
+            // Bind the buffer we want to draw
+            gl.bindVertexArray(object.buffers.vao);
 
-       
-    }
+            // Draw the object
+            const offset = 0; // Number of elements to skip before starting
+            gl.drawElements(gl.TRIANGLES, object.buffers.numVertices, gl.UNSIGNED_SHORT, offset);
+        }
 
-    // Draw
-    {
-        // Bind the buffer we want to draw
-        gl.bindVertexArray(buffers.vao);
-
-        // Draw the object
-        const offset = 0; // Number of elements to skip before starting
-        gl.drawElements(gl.TRIANGLES, buffers.numVertices, gl.UNSIGNED_SHORT, offset);
-    }
+    });
 }
+
 
 /************************************
  * UI EVENTS
@@ -177,41 +319,44 @@ function drawScene(gl, deltaTime, state, programInfo, buffers) {
 
 function setupKeypresses(state){
     const keysPressed = {};
-
+    const index = 0;
     document.addEventListener("keydown", (event) => {
         console.log(event.code);
+
+        var object = state.objects[state.selectedIndex];
+
         keysPressed[event.code] = true;
         
         
         if(keysPressed["KeyW"]&&keysPressed["KeyA"]){
             // Move Object in the Uper-left diagonal
-            vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, -0.4));
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(-0.4, 0.0, -0.4));
         } else if(keysPressed["KeyW"]&&keysPressed["KeyD"]){
             // Move Object in the Uper-right diagonal
-            vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, -0.4));
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.4, 0.0, -0.4));
         } else if(keysPressed["KeyS"]&&keysPressed["KeyA"]){
             // Move Object in the Lower-left diagonal
-            vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, 0.4));
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(-0.4, 0.0, 0.4));
         } else if(keysPressed["KeyS"]&&keysPressed["KeyD"]){
             // Move Object in the Lower-right diagonal
-            vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, 0.4));
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.4, 0.0, 0.4));
         } else if(keysPressed["KeyD"]){
             // translate object along X (right)
-            vec3.add(state.model.position, state.model.position, vec3.fromValues(0.4, 0.0, 0.0));
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.4, 0.0, 0.0));
         } else if (keysPressed["KeyA"]){
             // translate object along X (left)
-            vec3.add(state.model.position, state.model.position, vec3.fromValues(-0.4, 0.0, 0.0));
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(-0.4, 0.0, 0.0));
         } else if(keysPressed["KeyW"]){
             // Move object about Z-axis (forward)
-            vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, -0.4));
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.0, 0.0, -0.4));
         } else if(keysPressed["KeyS"]){
             // Move object Down Z-axis (backwards)
-            vec3.add(state.model.position, state.model.position, vec3.fromValues(0.0, 0.0, 0.4));
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.0, 0.0, 0.4));
         } else if(keysPressed["Equal"]){
-            // Reset the state
-            state.model.position = vec3.fromValues(0.0, 0.0, 0.0);
-            state.model.rotation = mat4.create(); // Identity matrix
-            state.model.scale = vec3.fromValues(1.0, 1.0, 1.0);
+            // Reset the object
+            object.model.position = vec3.fromValues(0.0, 0.0, 0.0);
+            object.model.rotation = mat4.create(); // Identity matrix
+            object.model.scale = vec3.fromValues(1.0, 1.0, 1.0);
 
             
             // Reset camera to original position
@@ -231,28 +376,25 @@ function setupKeypresses(state){
  * SHADER SETUP
  ************************************/
 
-function intializeShaderProgram(gl){
+function simpleShader(gl){
 
     // Vertex shader source code
     const vsSource =
     `#version 300 es
     in vec3 aPosition;
-    in vec4 aColor;
- 
+
     uniform mat4 uProjectionMatrix;
     uniform mat4 uViewMatrix;
     uniform mat4 uModelMatrix;
-    uniform mat4 uModelMatrix2; // change/remove -nadir
-    
+
+    uniform vec4 uColor;
 
     out vec4 oColor;
-  
+
     void main() {
-        // Position needs to be a vec4 with w as 1.0
         gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
-        
-        // Pass the colour to the fragment shader
-        oColor = aColor;
+
+        oColor = uColor;
     }
     `;
 
@@ -266,8 +408,9 @@ function intializeShaderProgram(gl){
     in vec4 oColor;
 
     void main() {
-
-        fragColor = oColor;
+        // oColor is a 4D vector 
+        // TODO add the alpha value from the oColor to correctly render its transparency
+        fragColor = vec4(oColor.rgb, oColor.a);
     }
     `;
 
@@ -283,116 +426,75 @@ function intializeShaderProgram(gl){
         // NOTE: it may be wise to check if these calls fail by seeing that the returned location is not -1.
         attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram, 'aPosition'),
-            vertexColour: gl.getAttribLocation(shaderProgram, 'aColor'),
         },
         uniformLocations: {
             projection: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
             view: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
             model: gl.getUniformLocation(shaderProgram, 'uModelMatrix'),
-
-            model2: gl.getUniformLocation(shaderProgram, 'uModelMatrix2'), // change or remove -nadir
-        }
+            colour: gl.getUniformLocation(shaderProgram, 'uColor'),
+        },
     };
 
        // Check to see if we found the locations of our uniforms and attributes
     // Typos are a common source of failure
     if (programInfo.attribLocations.vertexPosition === -1 ||
-        programInfo.attribLocations.vertexColour === -1 ||
         programInfo.uniformLocations.projection === -1 ||
         programInfo.uniformLocations.view === -1 ||
-        programInfo.uniformLocations.model === -1 ) {
+        programInfo.uniformLocations.model === -1 ||
+        programInfo.uniformLocations.color === -1 ) {
         printError('Shader Location Error', 'One or more of the uniform and attribute variables in the shaders could not be located');
     }
 
     return programInfo;
 }
 
+
 /************************************
  * BUFFER SETUP
  ************************************/
 
-/**
- * Initialize our buffer
- * 
- * @param  {} gl WebGL2 context
- * @param  {} programInfo Custom object containing shader program and locations
- * @returns {} An object containing the buffers
- */
-function initBuffers(gl, programInfo) {
+function initQuadBuffers(gl, object) {
 
      // We have 3 vertices with x, y, and z values
-     const positions = new Float32Array([
-        // Front face
-        -1.0, -1.0,  1.0,
-        1.0, -1.0,  1.0,
-        1.0,  1.0,  1.0,
-        -1.0,  1.0,  1.0,
-        
-        // Back face
-        -1.0, -1.0, -1.0,
-        -1.0,  1.0, -1.0,
-        1.0,  1.0, -1.0,
-        1.0, -1.0, -1.0,
-        
-        // Top face
-        -1.0,  1.0, -1.0,
-        -1.0,  1.0,  1.0,
-        1.0,  1.0,  1.0,
-        1.0,  1.0, -1.0,
-        
-        // Bottom face
-        -1.0, -1.0, -1.0,
-        1.0, -1.0, -1.0,
-        1.0, -1.0,  1.0,
-        -1.0, -1.0,  1.0,
-        
-        // Right face
-        1.0, -1.0, -1.0,
-        1.0,  1.0, -1.0,
-        1.0,  1.0,  1.0,
-        1.0, -1.0,  1.0,
-        
-        // Left face
-        -1.0, -1.0, -1.0,
-        -1.0, -1.0,  1.0,
-        -1.0,  1.0,  1.0,
-        -1.0,  1.0, -1.0,
+     const positionArray = new Float32Array([
+         // Front face
+         -1.0, -1.0,  1.0,
+         1.0, -1.0,  1.0,
+         1.0,  1.0,  1.0,
+         -1.0,  1.0,  1.0,
+         
+         // Back face
+         -1.0, -1.0, -1.0,
+         -1.0,  1.0, -1.0,
+         1.0,  1.0, -1.0,
+         1.0, -1.0, -1.0,
+         
+         // Top face
+         -1.0,  1.0, -1.0,
+         -1.0,  1.0,  1.0,
+         1.0,  1.0,  1.0,
+         1.0,  1.0, -1.0,
+         
+         // Bottom face
+         -1.0, -1.0, -1.0,
+         1.0, -1.0, -1.0,
+         1.0, -1.0,  1.0,
+         -1.0, -1.0,  1.0,
+         
+         // Right face
+         1.0, -1.0, -1.0,
+         1.0,  1.0, -1.0,
+         1.0,  1.0,  1.0,
+         1.0, -1.0,  1.0,
+         
+         // Left face
+         -1.0, -1.0, -1.0,
+         -1.0, -1.0,  1.0,
+         -1.0,  1.0,  1.0,
+         -1.0,  1.0, -1.0,
     ]);
 
-    // We have 3 vertices with r, g, b, a colour values
-    const colours = new Float32Array([
-        1.0,  1.0,  1.0,  1.0, 
-        1.0,  1.0,  1.0,  1.0, 
-        1.0,  1.0,  1.0,  1.0, 
-        1.0,  1.0,  1.0,  1.0, 
-        
-        1.0,  0.0,  0.0,  1.0,
-        1.0,  0.0,  0.0,  1.0,  
-        1.0,  0.0,  0.0,  1.0,  
-        1.0,  0.0,  0.0,  1.0,  
-
-        0.0,  1.0,  0.0,  1.0,
-        0.0,  1.0,  0.0,  1.0,
-        0.0,  1.0,  0.0,  1.0,
-        0.0,  1.0,  0.0,  1.0,
-
-        0.0,  0.0,  1.0,  1.0,   
-        0.0,  0.0,  1.0,  1.0,   
-        0.0,  0.0,  1.0,  1.0,   
-        0.0,  0.0,  1.0,  1.0,   
-
-        1.0,  1.0,  0.0,  1.0,
-        1.0,  1.0,  0.0,  1.0,
-        1.0,  1.0,  0.0,  1.0,
-        1.0,  1.0,  0.0,  1.0,
-
-        1.0,  0.0,  1.0,  1.0,
-        1.0,  0.0,  1.0,  1.0,
-        1.0,  0.0,  1.0,  1.0,
-        1.0,  0.0,  1.0,  1.0,
-    ]);
-
-    const normals = new Float32Array([
+    const normalArray = new Float32Array([
         // Front
         0.0,  0.0,  1.0,
         0.0,  0.0,  1.0,
@@ -440,115 +542,181 @@ function initBuffers(gl, programInfo) {
         20, 21, 22,     20, 22, 23,   // left
     ]);
 
+    initBuffers(gl, object, positionArray, normalArray, null, null, indicesArray);
+}
+
+function initBuffers(gl, object, positionArray, normalArray, colourArray, textureCoordArray, indicesArray) {
+
+    // We have 3 vertices with x, y, and z values
+    const positions = new Float32Array(positionArray);
+
+    const normals = new Float32Array(normalArray);
+
+    const colours = new Float32Array(colourArray);
+
+    const textureCoords = new Float32Array(textureCoordArray);
+
+    // We are using gl.UNSIGNED_SHORT to enumerate the indices
+    const indices = new Uint16Array(indicesArray);
+
     // Allocate and assign a Vertex Array Object to our handle
     var vertexArrayObject = gl.createVertexArray();
 
     // Bind our Vertex Array Object as the current used object
     gl.bindVertexArray(vertexArrayObject);
 
-    return {
+    object.buffers = {
         vao: vertexArrayObject,
         attributes: {
-            position: initPositionAttribute(gl, programInfo, positions),
-            colour: initColourAttribute(gl, programInfo, colours),
+            position: initPositionAttribute(gl, object.programInfo, positions),
+            normal: initNormalAttribute(gl, object.programInfo, normals),
         },
-        indices: initIndexBuffer(gl, indicesArray),
-        numVertices: indicesArray.length,
+        indices: initIndexBuffer(gl, indices),
+        numVertices: indices.length,
     };
 }
 
 function initPositionAttribute(gl, programInfo, positionArray) {
+    if(positionArray != null && positionArray.length > 0 && programInfo.attribLocations.vertexPosition != null){
+        // Create a buffer for the positions.
+        const positionBuffer = gl.createBuffer();
 
-    // Create a buffer for the positions.
-    const positionBuffer = gl.createBuffer();
+        // Select the buffer as the one to apply buffer
+        // operations to from here out.
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-    // Select the buffer as the one to apply buffer
-    // operations to from here out.
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-    // Now pass the list of positions into WebGL to build the
-    // shape. We do this by creating a Float32Array from the
-    // JavaScript array, then use it to fill the current buffer.
-    gl.bufferData(
-        gl.ARRAY_BUFFER, // The kind of buffer this is
-        positionArray, // The data in an Array object
-        gl.STATIC_DRAW // We are not going to change this data, so it is static
-    );
-
-    // Tell WebGL how to pull out the positions from the position
-    // buffer into the vertexPosition attribute.
-    {
-        const numComponents = 3; // pull out 3 values per iteration, ie vec3
-        const type = gl.FLOAT; // the data in the buffer is 32bit floats
-        const normalize = false; // don't normalize between 0 and 1
-        const stride = 0; // how many bytes to get from one set of values to the next
-        // Set stride to 0 to use type and numComponents above
-        const offset = 0; // how many bytes inside the buffer to start from
-
-
-        // Set the information WebGL needs to read the buffer properly
-        gl.vertexAttribPointer(
-            programInfo.attribLocations.vertexPosition,
-            numComponents,
-            type,
-            normalize,
-            stride,
-            offset
+        // Now pass the list of positions into WebGL to build the
+        // shape. We do this by creating a Float32Array from the
+        // JavaScript array, then use it to fill the current buffer.
+        gl.bufferData(
+            gl.ARRAY_BUFFER, // The kind of buffer this is
+            positionArray, // The data in an Array object
+            gl.STATIC_DRAW // We are not going to change this data, so it is static
         );
-        // Tell WebGL to use this attribute
-        gl.enableVertexAttribArray(
-            programInfo.attribLocations.vertexPosition);
-    }
 
-    return positionBuffer;
+        // Tell WebGL how to pull out the positions from the position
+        // buffer into the vertexPosition attribute.
+        {
+            const numComponents = 3; // pull out 3 values per iteration, ie vec3
+            const type = gl.FLOAT; // the data in the buffer is 32bit floats
+            const normalize = false; // don't normalize between 0 and 1
+            const stride = 0; // how many bytes to get from one set of values to the next
+            // Set stride to 0 to use type and numComponents above
+            const offset = 0; // how many bytes inside the buffer to start from
+
+
+            // Set the information WebGL needs to read the buffer properly
+            gl.vertexAttribPointer(
+                programInfo.attribLocations.vertexPosition,
+                numComponents,
+                type,
+                normalize,
+                stride,
+                offset
+            );
+            // Tell WebGL to use this attribute
+            gl.enableVertexAttribArray(
+                programInfo.attribLocations.vertexPosition);
+        }
+
+        return positionBuffer;
+    }
 }
 
 
 function initColourAttribute(gl, programInfo, colourArray) {
 
-    // Create a buffer for the positions.
-    const colourBuffer = gl.createBuffer();
+    if(colourArray != null && colourArray.length > 0 && programInfo.attribLocations.vertexColour != null) {
+        // Create a buffer for the positions.
+        const colourBuffer = gl.createBuffer();
 
-    // Select the buffer as the one to apply buffer
-    // operations to from here out.
-    gl.bindBuffer(gl.ARRAY_BUFFER, colourBuffer);
+        // Select the buffer as the one to apply buffer
+        // operations to from here out.
+        gl.bindBuffer(gl.ARRAY_BUFFER, colourBuffer);
 
-    // Now pass the list of positions into WebGL to build the
-    // shape. We do this by creating a Float32Array from the
-    // JavaScript array, then use it to fill the current buffer.
-    gl.bufferData(
-        gl.ARRAY_BUFFER, // The kind of buffer this is
-        colourArray, // The data in an Array object
-        gl.STATIC_DRAW // We are not going to change this data, so it is static
-    );
-
-    // Tell WebGL how to pull out the positions from the position
-    // buffer into the vertexPosition attribute.
-    {
-        const numComponents = 4; // pull out 4 values per iteration, ie vec4
-        const type = gl.FLOAT; // the data in the buffer is 32bit floats
-        const normalize = false; // don't normalize between 0 and 1
-        const stride = 0; // how many bytes to get from one set of values to the next
-        // Set stride to 0 to use type and numComponents above
-        const offset = 0; // how many bytes inside the buffer to start from
-
-        // Set the information WebGL needs to read the buffer properly
-        gl.vertexAttribPointer(
-            programInfo.attribLocations.vertexColour,
-            numComponents,
-            type,
-            normalize,
-            stride,
-            offset
+        // Now pass the list of positions into WebGL to build the
+        // shape. We do this by creating a Float32Array from the
+        // JavaScript array, then use it to fill the current buffer.
+        gl.bufferData(
+            gl.ARRAY_BUFFER, // The kind of buffer this is
+            colourArray, // The data in an Array object
+            gl.STATIC_DRAW // We are not going to change this data, so it is static
         );
-        // Tell WebGL to use this attribute
-        gl.enableVertexAttribArray(
-            programInfo.attribLocations.vertexColour);
-    }
 
-    return colourBuffer;
+        // Tell WebGL how to pull out the positions from the position
+        // buffer into the vertexPosition attribute.
+        {
+            const numComponents = 4; // pull out 4 values per iteration, ie vec4
+            const type = gl.FLOAT; // the data in the buffer is 32bit floats
+            const normalize = false; // don't normalize between 0 and 1
+            const stride = 0; // how many bytes to get from one set of values to the next
+            // Set stride to 0 to use type and numComponents above
+            const offset = 0; // how many bytes inside the buffer to start from
+
+            // Set the information WebGL needs to read the buffer properly
+            gl.vertexAttribPointer(
+                programInfo.attribLocations.vertexColour,
+                numComponents,
+                type,
+                normalize,
+                stride,
+                offset
+            );
+            // Tell WebGL to use this attribute
+            gl.enableVertexAttribArray(
+                programInfo.attribLocations.vertexColour);
+        }
+
+        return colourBuffer;
+    }
 }
 
+
+function initNormalAttribute(gl, programInfo, normalArray) {
+    if(normalArray != null && normalArray.length > 0 && programInfo.attribLocations.vertexNormal != null){
+        // Create a buffer for the positions.
+        const normalBuffer = gl.createBuffer();
+
+        // Select the buffer as the one to apply buffer
+        // operations to from here out.
+        gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+
+        // Now pass the list of positions into WebGL to build the
+        // shape. We do this by creating a Float32Array from the
+        // JavaScript array, then use it to fill the current buffer.
+        gl.bufferData(
+            gl.ARRAY_BUFFER, // The kind of buffer this is
+            normalArray, // The data in an Array object
+            gl.STATIC_DRAW // We are not going to change this data, so it is static
+        );
+
+        // Tell WebGL how to pull out the positions from the position
+        // buffer into the vertexPosition attribute.
+        {
+            const numComponents = 3; // pull out 4 values per iteration, ie vec3
+            const type = gl.FLOAT; // the data in the buffer is 32bit floats
+            const normalize = false; // don't normalize between 0 and 1
+            const stride = 0; // how many bytes to get from one set of values to the next
+            // Set stride to 0 to use type and numComponents above
+            const offset = 0; // how many bytes inside the buffer to start from
+
+            // Set the information WebGL needs to read the buffer properly
+            gl.vertexAttribPointer(
+                programInfo.attribLocations.vertexNormal,
+                numComponents,
+                type,
+                normalize,
+                stride,
+                offset
+            );
+            // Tell WebGL to use this attribute
+            gl.enableVertexAttribArray(
+                programInfo.attribLocations.vertexNormal);
+        }
+
+        return normalBuffer;
+    }
+}
 
 function initIndexBuffer(gl, elementArray) {
 
@@ -570,16 +738,3 @@ function initIndexBuffer(gl, elementArray) {
 
     return indexBuffer;
 }
-
-
-
-/*
-Order of transformations: Translation → Rotation → Scale (revers order)
-
-Camera vs. object translation: Moving the camera right or the object left creates the same relative positioning and visual effect. 
-Moving an object left makes from the camera pov the object moves left, 
-but moving the camera right, from the camera pov the object still moves left
-
-Object vs. camera rotations: They can have similar effects visually, but object rotation changes only the 
-object’s orientation, while camera rotation changes the entire scene's viewpoint. In other words object space vs world space
-*/
