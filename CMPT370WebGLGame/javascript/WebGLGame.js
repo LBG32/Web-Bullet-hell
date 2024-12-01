@@ -35,6 +35,7 @@ function main() {
                 strength: 10.0,
             }
         ],
+        // IF ADDING OBJECTS REMEMBER TO GIVE ID'S, ALSO LAST OBJECT NEEDS TO BE THE PLAYER
         objects: [
             {
                 model: { // red
@@ -60,12 +61,61 @@ function main() {
                 texture: null,
                 colour: vec4.fromValues(0.0, 0.0, 1.0, 1.0),
             },
+            
+            {
+                model: { // left wall
+                    position: vec3.fromValues(-25.5, 0.0, 0.0),
+                    rotation: mat4.create(),
+                    scale: vec3.fromValues(3.0, 1.0, 30.0),
+                    id: 2,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.8, 0.8, 0.2, 1.0),
+            },
+            {
+                model: { // right wall
+                    position: vec3.fromValues(22.5, 0.0, 0.0),
+                    rotation: mat4.create(),
+                    scale: vec3.fromValues(1.0, 2.0, 30.0),
+                    id: 3,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.8, 0.2, 0.8, 1.0),
+            },
+            {
+                model: { // bottom wall
+                    position: vec3.fromValues(0.0, 0.0, 16.0),
+                    rotation: mat4.create(),
+                    scale: vec3.fromValues(30.0, 1.0, 1.0),
+                    id: 4,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.2, 0.8, 0.8, 1.0),
+            },
+            {
+                model: { // top wall
+                    position: vec3.fromValues(0.0, 0.0, -25.0),
+                    rotation: mat4.create(),
+                    scale: vec3.fromValues(40.0, 3.0, 1.0),
+                    id: 5,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.3, 0.1, 0.5, 1.0),
+            },
             {
                 model: { // this one is the player (highest id num is player)
                     position: vec3.fromValues(-5.5, 0.0, -5.5),
                     rotation: mat4.create(), // Identity matrix
                     scale: vec3.fromValues(1.0, 1.0, 1.0),
-                    id: 2,
+                    id: 6,
                 },
                 programInfo: simpleShader(gl),
                 buffers: null,
@@ -117,11 +167,58 @@ function startRendering(gl, state) {
 }
 
 function updateState(deltaTime, state) {
-    // Update state as you wish here.  Gets called every frame.
     state.objects.forEach((object) => {
+        if (!object.velocity) {
+            // Initialize velocity for the object if not already set
+            object.velocity = [
+                (Math.random() - 0.5) * 20, // Random velocity along X
+                0,                          // No movement along Y
+                (Math.random() - 0.5) * 20  // Random velocity along Z
+            ];
+        }
 
+        if (object.model.id < 2) {
+
+            // Update the position based on velocity
+            object.model.position[0] += object.velocity[0] * deltaTime; // Update X position
+            object.model.position[2] += object.velocity[2] * deltaTime; // Update Z position
+
+            // Check for collisions with camera view bounds
+            const cameraBounds = {
+                left: -21,  //  left bound
+                right: 20,  //  right bound
+                top: 14,    //  bottom bound THESE ARE REVERSED SO COMMENT NAMES ARE CORRECT VARIABLES ARE NOT
+                bottom: -22 //  top bound   RENAMING THEM BREAKS VELOCITY FOR SOME REASON
+            };
+
+            // Bounce off the left or right edges
+            if (
+                object.model.position[0] <= cameraBounds.left ||
+                object.model.position[0] >= cameraBounds.right
+            ) {
+                object.velocity[0] *= -1; // Invert X velocity
+            }
+
+            // Bounce off the top or bottom edges
+            if (
+                object.model.position[2] <= cameraBounds.bottom ||
+                object.model.position[2] >= cameraBounds.top
+            ) {
+                object.velocity[2] *= -1; // Invert Z velocity
+            }
+
+            // check collision
+            if (object.model.position[0] == state.objects[2].model.position[0] && 
+                object.model.position[2] == state.objects[2].model.position[2]) {
+                console.log(`Object collision`);
+
+            }
+        }
+        
     });
 }
+
+
 
 function drawScene(gl, state) {
 
@@ -189,13 +286,7 @@ function drawScene(gl, state) {
             gl.uniformMatrix4fv(object.programInfo.uniformLocations.view, false, viewMatrix);
 
 
-            // Update model transform
-
-            if (object.model.id != 2) {
-                var time = performance.now() * 0.001; // Current time in seconds
-                object.model.position[0] = time * 5.0; // move along X-axis
-                //object.model.position[2] = time * 2.0; // move along z-axis
-            }
+            
             
             var modelMatrix = mat4.create();
             mat4.translate(modelMatrix, modelMatrix, object.model.position);
