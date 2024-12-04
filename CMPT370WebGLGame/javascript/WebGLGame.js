@@ -207,11 +207,16 @@ function updateState(deltaTime, state) {
                 object.velocity[2] *= -1; // Invert Z velocity
             }
 
+            console.log(((state.objects[0].model.position[0] - 2) >= state.objects[6].model.position[0]), ((state.objects[6].model.position[0] - 2) >= state.objects[0].model.position[0]))
             // check collision
-            if (object.model.position[0] == state.objects[2].model.position[0] && 
-                object.model.position[2] == state.objects[2].model.position[2]) {
-                console.log(`Object collision`);
-
+            if (((state.objects[0].model.position[0] - 2) <= state.objects[6].model.position[0] &&
+                (state.objects[6].model.position[0] - 2) <= state.objects[0].model.position[0]) &&
+                ((state.objects[0].model.position[2] - 2) <= state.objects[6].model.position[2] &&
+                (state.objects[6].model.position[2] - 2) <= state.objects[0].model.position[2])) {
+                    state.objects[0].model.position = vec3.fromValues(0.0, 0.0, 0.0)
+                    state.objects[1].model.position = vec3.fromValues(5.5, 0.0, 5.5)
+                    state.objects[6].model.position = vec3.fromValues(-5.5, 0.0, -5.5)
+                    state.objects[5].model.position = vec3.fromValues(0.0, 0.0, -25.0)
             }
         }
         
