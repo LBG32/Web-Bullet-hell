@@ -207,26 +207,41 @@ function updateState(deltaTime, state) {
                 object.velocity[2] *= -1; // Invert Z velocity
             }
 
-            console.log(((state.objects[0].model.position[0] - 2) >= state.objects[6].model.position[0]), ((state.objects[6].model.position[0] - 2) >= state.objects[0].model.position[0]))
             // check collision
             if (((state.objects[0].model.position[0] - 2) <= state.objects[6].model.position[0] &&
                 (state.objects[6].model.position[0] - 2) <= state.objects[0].model.position[0]) &&
                 ((state.objects[0].model.position[2] - 2) <= state.objects[6].model.position[2] &&
                 (state.objects[6].model.position[2] - 2) <= state.objects[0].model.position[2])) {
-                    state.objects[0].model.position = vec3.fromValues(0.0, 0.0, 0.0)
-                    state.objects[5].model.position = vec3.fromValues(5.5, 0.0, 5.5)
-                    state.objects[6].model.position = vec3.fromValues(-5.5, 0.0, -5.5)
-                    //state.objects[5].model.position = vec3.fromValues(0.0, 0.0, -25.0)
-                    state.objects[0].velocity = [
-                        (Math.random() - 0.5) * 20, // Random velocity along X
-                        0,                          // No movement along Y
-                        (Math.random() - 0.5) * 20  // Random velocity along Z
-                    ];
+                    Reset(state)
+            }
+            if (((state.objects[0].model.position[0] - 2) <= state.objects[5].model.position[0] &&
+                (state.objects[5].model.position[0] - 2) <= state.objects[0].model.position[0]) &&
+                ((state.objects[0].model.position[2] - 2) <= state.objects[5].model.position[2] &&
+                (state.objects[5].model.position[2] - 2) <= state.objects[0].model.position[2])) {
+                    Reset(state)
             }
         }
         
     });
 }
+
+
+function Reset(state) {
+    // Reset positions of specific objects
+    state.objects[0].model.position = vec3.fromValues(0.0, 0.0, 0.0);
+    state.objects[5].model.position = vec3.fromValues(5.5, 0.0, 5.5);
+    state.objects[6].model.position = vec3.fromValues(-5.5, 0.0, -5.5);
+
+    // Assign random velocities to all objects
+    state.objects.forEach((object) => {
+        object.velocity = [
+            (Math.random() - 0.5) * 20, // Random velocity along X
+            0,                          // No movement along Y
+            (Math.random() - 0.5) * 20  // Random velocity along Z
+        ];
+    });
+}
+
 
 
 
