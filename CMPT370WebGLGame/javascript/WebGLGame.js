@@ -66,9 +66,9 @@ function main() {
             
             {
                 model: { // left wall
-                    position: vec3.fromValues(-32.0, 0.0, 0.0),
+                    position: vec3.fromValues(-32.0, 5.0, 0.0),
                     rotation: mat4.create(),
-                    scale: vec3.fromValues(8.0, 5.0, 30.0),
+                    scale: vec3.fromValues(8.0, 10.0, 30.0),
                     id: 3,
                 },
                 programInfo: simpleShader(gl),
@@ -102,9 +102,9 @@ function main() {
             },
             {
                 model: { // bottom wall
-                    position: vec3.fromValues(0.0, 0.0, 16.0),
+                    position: vec3.fromValues(0.0, 4.0, 16.0),
                     rotation: mat4.create(),
-                    scale: vec3.fromValues(30.0, 1.0, 1.0),
+                    scale: vec3.fromValues(30.0, 5.0, 1.0),
                     id: 5,
                 },
                 programInfo: simpleShader(gl),
@@ -114,9 +114,9 @@ function main() {
             },
             {
                 model: { // top wall
-                    position: vec3.fromValues(0.0, 0.0, -27.0),
+                    position: vec3.fromValues(0.0, 5.0, -27.0),
                     rotation: mat4.create(),
-                    scale: vec3.fromValues(24.2, 5.0, 1.0),
+                    scale: vec3.fromValues(24.2, 10.0, 1.0),
                     id: 2,
                 },
                 programInfo: simpleShader(gl),
@@ -271,8 +271,6 @@ function Reset(state) {
         ];
     });
 }
-
-
 
 
 function drawScene(gl, state) {
