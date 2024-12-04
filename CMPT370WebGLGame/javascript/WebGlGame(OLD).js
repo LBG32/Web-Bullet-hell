@@ -1253,3 +1253,20 @@ function loadTexture(gl, textureId, url) {
 
     return textureId;
 }
+
+
+/* 
+<fieldset>
+                    <!-- File chooser form -->
+                    <div class="form-group">
+                        <div class="input-group mb-3">
+                            <input type="file" class="form-control-file" id="textureInputFile" accept="*.jpg, *.png">
+                            <label for="textureInputFile">Choose file</label>
+                          </div>
+                          <div class="input-group-append">
+                            <span class="input-group-text" id="fileSubmitButton">Upload</span>
+                          </div>
+                      </div>
+                </fieldset>
+
+*/
