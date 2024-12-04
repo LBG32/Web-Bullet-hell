@@ -1,3 +1,4 @@
+let isFirstPerson = false; // Track if in first-person perspective
 main();
 
 /************************************
@@ -64,15 +65,27 @@ function main() {
             
             {
                 model: { // left wall
-                    position: vec3.fromValues(-29.5, 0.0, 0.0),
+                    position: vec3.fromValues(-32.0, 0.0, 0.0),
                     rotation: mat4.create(),
-                    scale: vec3.fromValues(8.0, 1.0, 30.0),
+                    scale: vec3.fromValues(8.0, 5.0, 30.0),
                     id: 3,
                 },
                 programInfo: simpleShader(gl),
                 buffers: null,
                 texture: null,
                 colour: vec4.fromValues(0.8, 0.8, 0.2, 1.0),
+            },
+            {
+                model: { // floor
+                    position: vec3.fromValues(0.0, -0.0, 0.0),
+                    rotation: mat4.create(),
+                    scale: vec3.fromValues(50.0, 1.0, 50.0),
+                    id: 7,
+                },
+                programInfo: simpleShader(gl),
+                buffers: null,
+                texture: null,
+                colour: vec4.fromValues(0.68, 0.85, 1.0, 1.0), // Light blue
             },
             {
                 model: { // right wall
@@ -111,7 +124,7 @@ function main() {
                 colour: vec4.fromValues(0.3, 0.1, 0.5, 1.0),
             },
             {
-                model: { // this one is the player (highest id num is player)
+                model: { // this one is the player 
                     position: vec3.fromValues(-5.5, 0.0, -5.5),
                     rotation: mat4.create(), // Identity matrix
                     scale: vec3.fromValues(1.0, 1.0, 1.0),
@@ -214,18 +227,20 @@ function updateState(deltaTime, state) {
                 else if (object.velocity[2] <= -5)
                     object.velocity[2] = -30
             }
-
+            
+            //console.log(state.objects[6].model.position)
+            // 1 is player 6 is blue 7 is red
             // check collision
-            if (((state.objects[0].model.position[0] - 2) <= state.objects[6].model.position[0] &&
-                (state.objects[6].model.position[0] - 2) <= state.objects[0].model.position[0]) &&
-                ((state.objects[0].model.position[2] - 2) <= state.objects[6].model.position[2] &&
-                (state.objects[6].model.position[2] - 2) <= state.objects[0].model.position[2])) {
+            if (((state.objects[6].model.position[0] - 2) <= state.objects[1].model.position[0] &&
+                (state.objects[1].model.position[0] - 2) <= state.objects[6].model.position[0]) &&
+                ((state.objects[6].model.position[2] - 2) <= state.objects[1].model.position[2] &&
+                (state.objects[1].model.position[2] - 2) <= state.objects[6].model.position[2])) {
                     Reset(state)
             }
-            if (((state.objects[0].model.position[0] - 2) <= state.objects[5].model.position[0] &&
-                (state.objects[5].model.position[0] - 2) <= state.objects[0].model.position[0]) &&
-                ((state.objects[0].model.position[2] - 2) <= state.objects[5].model.position[2] &&
-                (state.objects[5].model.position[2] - 2) <= state.objects[0].model.position[2])) {
+            if (((state.objects[7].model.position[0] - 2) <= state.objects[1].model.position[0] &&
+                (state.objects[1].model.position[0] - 2) <= state.objects[7].model.position[0]) &&
+                ((state.objects[7].model.position[2] - 2) <= state.objects[1].model.position[2] &&
+                (state.objects[1].model.position[2] - 2) <= state.objects[7].model.position[2])) {
                     Reset(state)
             }
         }
@@ -236,9 +251,15 @@ function updateState(deltaTime, state) {
 
 function Reset(state) {
     // Reset positions of specific objects
-    state.objects[0].model.position = vec3.fromValues(0.0, 0.0, 0.0);
-    state.objects[5].model.position = vec3.fromValues(5.5, 0.0, 5.5);
-    state.objects[6].model.position = vec3.fromValues(-5.5, 0.0, -5.5);
+    state.objects[6].model.position = vec3.fromValues(0.0, 0.0, 0.0);
+    state.objects[7].model.position = vec3.fromValues(5.5, 0.0, 5.5);
+    state.objects[1].model.position = vec3.fromValues(-5.5, 0.0, -5.5);
+
+    // Reset to default third-person camera
+    isFirstPerson = false;
+    state.camera.position = vec3.fromValues(0.0, 30.0, 15.0);
+    state.camera.center = vec3.fromValues(0.0, 0.0, 0.0);
+    state.camera.up =  vec3.fromValues(0.0, 1.0, 0.0);
 
     // Assign random velocities to all objects
     state.objects.forEach((object) => {
@@ -349,60 +370,103 @@ function drawScene(gl, state) {
 /************************************
  * UI EVENTS
  ************************************/
-
-function setupKeypresses(state){
+function setupKeypresses(state) {
     const keysPressed = {};
-    const index = 0;
+    
+
     document.addEventListener("keydown", (event) => {
         console.log(event.code);
 
-        var object = state.objects[state.selectedIndex];
+        const player = state.objects.find((obj) => obj.model.id === 6); // Find player object
 
         keysPressed[event.code] = true;
-        
-        
-        if(keysPressed["KeyW"]&&keysPressed["KeyA"]){
-            // Move Object in the Uper-left diagonal
-            vec3.add(object.model.position, object.model.position, vec3.fromValues(-0.4, 0.0, -0.4));
-        } else if(keysPressed["KeyW"]&&keysPressed["KeyD"]){
-            // Move Object in the Uper-right diagonal
-            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.4, 0.0, -0.4));
-        } else if(keysPressed["KeyS"]&&keysPressed["KeyA"]){
-            // Move Object in the Lower-left diagonal
-            vec3.add(object.model.position, object.model.position, vec3.fromValues(-0.4, 0.0, 0.4));
-        } else if(keysPressed["KeyS"]&&keysPressed["KeyD"]){
-            // Move Object in the Lower-right diagonal
-            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.4, 0.0, 0.4));
-        } else if(keysPressed["KeyD"]){
-            // translate object along X (right)
-            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.4, 0.0, 0.0));
-        } else if (keysPressed["KeyA"]){
-            // translate object along X (left)
-            vec3.add(object.model.position, object.model.position, vec3.fromValues(-0.4, 0.0, 0.0));
-        } else if(keysPressed["KeyW"]){
-            // Move object about Z-axis (forward)
-            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.0, 0.0, -0.4));
-        } else if(keysPressed["KeyS"]){
-            // Move object Down Z-axis (backwards)
-            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.0, 0.0, 0.4));
-        } else if(keysPressed["Equal"]){
-            // Reset the object
-            object.model.position = vec3.fromValues(0.0, 0.0, 0.0);
-            object.model.rotation = mat4.create(); // Identity matrix
-            object.model.scale = vec3.fromValues(1.0, 1.0, 1.0);
 
-            
-            // Reset camera to original position
-            state.camera.position = vec3.fromValues(0.0, 30.0, 15.0); // Example default position
-            state.camera.center = vec3.fromValues(0.0, 0.0, 0.0); // Example default center
-            state.camera.up = vec3.fromValues(0.0, 1.0, 0.0);
+        // Toggle first-person perspective
+        if (event.code === "KeyP") {
+            isFirstPerson = !isFirstPerson;
+            if (isFirstPerson) {
+                // Align camera with player in first-person mode
+                state.camera.position = vec3.clone(player.model.position);
+                state.camera.position[1] += 2.5; // Offset to simulate head height
+                state.camera.center = vec3.add(
+                    vec3.create(),
+                    player.model.position,
+                    vec3.fromValues(0, 0, -1) // Look forward
+                );
+                // Look slightly upward
+                state.camera.center = vec3.add(vec3.create(), player.model.position,vec3.fromValues(0, 1.8, -1)); // Tilt camera upward (increase Y component)
+            } else {
+                // Reset to default third-person camera
+                state.camera.position = vec3.fromValues(0.0, 30.0, 15.0);
+                state.camera.center = vec3.fromValues(0.0, 0.0, 0.0);
+                state.camera.up =  vec3.fromValues(0.0, 1.0, 0.0);
+            }
+        }
+
+         // Toggle corner
+         if (event.code === "KeyQ") {
+            isFirstPerson = !isFirstPerson;
+            if (isFirstPerson) {
+                state.camera.position = vec3.fromValues(15.0, 15.0, 15.0);
+                state.camera.center = vec3.fromValues(0.0, 0.0, 0.0);
+                state.camera.up =  vec3.fromValues(0.0, 1.0, 0.0);
+            } else {
+                // Reset to default third-person camera
+                state.camera.position = vec3.fromValues(0.0, 30.0, 15.0);
+                state.camera.center = vec3.fromValues(0.0, 0.0, 0.0);
+                state.camera.up =  vec3.fromValues(0.0, 1.0, 0.0);
+            }
+        }
+
+        // Movement in first-person mode
+        if (isFirstPerson) {
+            const forward = vec3.fromValues(0, 0, -0.4); // Movement forward vector
+            const right = vec3.fromValues(0.4, 0, 0);    // Movement right vector
+
+            if (keysPressed["KeyW"]) {
+                vec3.add(state.camera.position, state.camera.position, forward);
+                vec3.add(state.camera.center, state.camera.center, forward);
+            }
+            if (keysPressed["KeyS"]) {
+                vec3.sub(state.camera.position, state.camera.position, forward);
+                vec3.sub(state.camera.center, state.camera.center, forward);
+            }
+            if (keysPressed["KeyA"]) {
+                vec3.sub(state.camera.position, state.camera.position, right);
+                vec3.sub(state.camera.center, state.camera.center, right);
+            }
+            if (keysPressed["KeyD"]) {
+                vec3.add(state.camera.position, state.camera.position, right);
+                vec3.add(state.camera.center, state.camera.center, right);
+            }
+        }
+
+        // Player movement (existing logic)
+        const object = state.objects[1];
+        if (keysPressed["KeyW"] && keysPressed["KeyA"]) {
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(-0.4, 0.0, -0.4));
+        } else if (keysPressed["KeyW"] && keysPressed["KeyD"]) {
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.4, 0.0, -0.4));
+        } else if (keysPressed["KeyS"] && keysPressed["KeyA"]) {
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(-0.4, 0.0, 0.4));
+        } else if (keysPressed["KeyS"] && keysPressed["KeyD"]) {
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.4, 0.0, 0.4));
+        } else if (keysPressed["KeyD"]) {
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.4, 0.0, 0.0));
+        } else if (keysPressed["KeyA"]) {
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(-0.4, 0.0, 0.0));
+        } else if (keysPressed["KeyW"]) {
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.0, 0.0, -0.4));
+        } else if (keysPressed["KeyS"]) {
+            vec3.add(object.model.position, object.model.position, vec3.fromValues(0.0, 0.0, 0.4));
         }
 
         document.addEventListener("keyup", (event) => {
             delete keysPressed[event.code];
-        })
+        });
     });
 }
+
 
 
 /************************************

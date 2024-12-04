@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" href="../style/bootstrap.css">
 </head>
 
-<body>
+<body style="background-color: bisque;">
     <!-- This is the navigation bar at the top of the page -->
     <!-- This is populated by loading the common functions script -->
     <div id="myNavBar"></div>
@@ -34,9 +34,21 @@
                 <p>Put Game Instuctions Here</p>
                 <p>Put Description here</p>
                 <p><i>
-                    Press "=" to reset game (not implemented yet)
                     Made by: Luc Gaucher and Nadir Bakridi
                 </i></p>
+
+                <fieldset>
+                    <!-- File chooser form -->
+                    <div class="form-group">
+                        <div class="input-group mb-3">
+                            <input type="file" class="form-control-file" id="textureInputFile" accept="*.jpg, *.png">
+                            <label for="textureInputFile">Choose file</label>
+                          </div>
+                          <div class="input-group-append">
+                            <span class="input-group-text" id="fileSubmitButton">Upload</span>
+                          </div>
+                      </div>
+                </fieldset>
             </div>
         </div>
     </div>
