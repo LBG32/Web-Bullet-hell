@@ -1,4 +1,5 @@
 let isFirstPerson = false; // Track if in first-person perspective
+let corner = false;
 main();
 
 /************************************
@@ -377,7 +378,7 @@ function setupKeypresses(state) {
     document.addEventListener("keydown", (event) => {
         console.log(event.code);
 
-        const player = state.objects.find((obj) => obj.model.id === 6); // Find player object
+        const player = state.objects[1]// Find player object
 
         keysPressed[event.code] = true;
 
@@ -405,8 +406,8 @@ function setupKeypresses(state) {
 
          // Toggle corner
          if (event.code === "KeyQ") {
-            isFirstPerson = !isFirstPerson;
-            if (isFirstPerson) {
+            corner = !corner;
+            if (corner) {
                 state.camera.position = vec3.fromValues(15.0, 15.0, 15.0);
                 state.camera.center = vec3.fromValues(0.0, 0.0, 0.0);
                 state.camera.up =  vec3.fromValues(0.0, 1.0, 0.0);
