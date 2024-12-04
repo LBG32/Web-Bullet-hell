@@ -51,7 +51,7 @@ function main() {
                 programInfo: simpleShader(gl),
                 buffers: null,
                 texture: null,
-                colour: vec4.fromValues(1.0, 0.0, 0.0, 1.0),
+                colour: vec4.fromValues(1.0, 0.0, 0.0, 0.2),
             },
             {
                 model: { //blue 
@@ -852,3 +852,5 @@ function initIndexBuffer(gl, elementArray) {
 
     return indexBuffer;
 }
+
+
