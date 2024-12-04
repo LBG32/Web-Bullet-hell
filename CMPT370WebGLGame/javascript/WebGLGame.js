@@ -64,10 +64,10 @@ function main() {
             
             {
                 model: { // left wall
-                    position: vec3.fromValues(-25.5, 0.0, 0.0),
+                    position: vec3.fromValues(-29.5, 0.0, 0.0),
                     rotation: mat4.create(),
-                    scale: vec3.fromValues(3.0, 1.0, 30.0),
-                    id: 2,
+                    scale: vec3.fromValues(8.0, 1.0, 30.0),
+                    id: 3,
                 },
                 programInfo: simpleShader(gl),
                 buffers: null,
@@ -76,10 +76,10 @@ function main() {
             },
             {
                 model: { // right wall
-                    position: vec3.fromValues(22.5, 0.0, 0.0),
+                    position: vec3.fromValues(30.0, 0.0, 0.0),
                     rotation: mat4.create(),
-                    scale: vec3.fromValues(1.0, 2.0, 30.0),
-                    id: 3,
+                    scale: vec3.fromValues(8.0, 2.0, 30.0),
+                    id: 4,
                 },
                 programInfo: simpleShader(gl),
                 buffers: null,
@@ -91,7 +91,7 @@ function main() {
                     position: vec3.fromValues(0.0, 0.0, 16.0),
                     rotation: mat4.create(),
                     scale: vec3.fromValues(30.0, 1.0, 1.0),
-                    id: 4,
+                    id: 5,
                 },
                 programInfo: simpleShader(gl),
                 buffers: null,
@@ -100,10 +100,10 @@ function main() {
             },
             {
                 model: { // top wall
-                    position: vec3.fromValues(0.0, 0.0, -25.0),
+                    position: vec3.fromValues(0.0, 0.0, -27.0),
                     rotation: mat4.create(),
-                    scale: vec3.fromValues(40.0, 3.0, 1.0),
-                    id: 5,
+                    scale: vec3.fromValues(24.2, 5.0, 1.0),
+                    id: 2,
                 },
                 programInfo: simpleShader(gl),
                 buffers: null,
@@ -196,7 +196,11 @@ function updateState(deltaTime, state) {
                 object.model.position[0] <= cameraBounds.left ||
                 object.model.position[0] >= cameraBounds.right
             ) {
-                object.velocity[0] *= -1; // Invert X velocity
+                object.velocity[0] *= -1.3; // Invert X velocity
+                if (object.velocity[0]>=5)
+                    object.velocity[0] = 30
+                else if (object.velocity[0] <= -5)
+                    object.velocity[0] = -30
             }
 
             // Bounce off the top or bottom edges
@@ -204,7 +208,11 @@ function updateState(deltaTime, state) {
                 object.model.position[2] <= cameraBounds.bottom ||
                 object.model.position[2] >= cameraBounds.top
             ) {
-                object.velocity[2] *= -1; // Invert Z velocity
+                object.velocity[2] *= -1.3; // Invert Z velocity
+                if (object.velocity[2]>=5)
+                    object.velocity[2] = 30
+                else if (object.velocity[2] <= -5)
+                    object.velocity[2] = -30
             }
 
             // check collision
