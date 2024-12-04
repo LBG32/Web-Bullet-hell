@@ -1,5 +1,7 @@
 let isFirstPerson = false; // Track if in first-person perspective
 let corner = false;
+let score = 0;
+let hScore = 0;
 main();
 
 /************************************
@@ -49,7 +51,7 @@ function main() {
                 programInfo: simpleShader(gl),
                 buffers: null,
                 texture: null,
-                colour: vec4.fromValues(1.0, 0.0, 0.0, 1.0),
+                colour: vec4.fromValues(1.0, 0.0, 0.0, 0.2),
             },
             {
                 model: { //blue 
@@ -191,7 +193,8 @@ function updateState(deltaTime, state) {
             ];
         }
 
-        if (object.model.id < 2) {
+        // handles movement for red and blue cubes
+        if (object.model.id < 2) { 
 
             // Update the position based on velocity
             object.model.position[0] += object.velocity[0] * deltaTime; // Update X position
@@ -201,7 +204,7 @@ function updateState(deltaTime, state) {
             const cameraBounds = {
                 left: -21,  //  left bound
                 right: 20,  //  right bound
-                top: 14,    //  bottom bound THESE ARE REVERSED SO COMMENT NAMES ARE CORRECT VARIABLES ARE NOT
+                top: 14,    //  bottom bound THESE ARE REVERSED SO COMMENT NAMES ARE CORRECT, VARIABLES ARE NOT
                 bottom: -22 //  top bound   RENAMING THEM BREAKS VELOCITY FOR SOME REASON
             };
 
@@ -247,6 +250,19 @@ function updateState(deltaTime, state) {
         }
         
     });
+
+    //scoring
+    score += 1;
+    const scoreDisplay = document.getElementById("integerDisplay");
+    const hScoreDisplay = document.getElementById("integerDisplay2");
+    if (scoreDisplay) {
+        scoreDisplay.textContent = `Score: ${score}`;
+    }
+    if (score >= hScore) {
+        hScore = score;
+        hScoreDisplay.textContent = `High Score: ${hScore}`;
+    }
+
 }
 
 
@@ -270,6 +286,8 @@ function Reset(state) {
             (Math.random() - 0.5) * 20  // Random velocity along Z
         ];
     });
+
+    score = 0;
 }
 
 
@@ -834,3 +852,5 @@ function initIndexBuffer(gl, elementArray) {
 
     return indexBuffer;
 }
+
+
