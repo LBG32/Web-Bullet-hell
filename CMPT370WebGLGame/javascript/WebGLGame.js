@@ -214,9 +214,14 @@ function updateState(deltaTime, state) {
                 ((state.objects[0].model.position[2] - 2) <= state.objects[6].model.position[2] &&
                 (state.objects[6].model.position[2] - 2) <= state.objects[0].model.position[2])) {
                     state.objects[0].model.position = vec3.fromValues(0.0, 0.0, 0.0)
-                    state.objects[1].model.position = vec3.fromValues(5.5, 0.0, 5.5)
+                    state.objects[5].model.position = vec3.fromValues(5.5, 0.0, 5.5)
                     state.objects[6].model.position = vec3.fromValues(-5.5, 0.0, -5.5)
-                    state.objects[5].model.position = vec3.fromValues(0.0, 0.0, -25.0)
+                    //state.objects[5].model.position = vec3.fromValues(0.0, 0.0, -25.0)
+                    state.objects[0].velocity = [
+                        (Math.random() - 0.5) * 20, // Random velocity along X
+                        0,                          // No movement along Y
+                        (Math.random() - 0.5) * 20  // Random velocity along Z
+                    ];
             }
         }
         
